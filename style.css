@@ -18,6 +18,13 @@
     background: var(--bg-color);
 }
 
+.block-1 {
+    width: 100%;
+    height: 80%;
+    box-shadow: 4px 4px 12px -6px rgba(0, 0, 0, 0.2);
+    border-radius: 1rem;
+}
+
 /* .block-1, */
 .block-2 {
     position: fixed;
@@ -41,6 +48,10 @@
     box-shadow: inset 4px 4px 12px -6px rgba(0, 0, 0, 0.2);
 }
 
+.layout-block {
+    
+}
+
 .app-block {
     width: 100%;
     height: 100%;
@@ -60,17 +71,23 @@
 .icon {
     height: 60px;
     aspect-ratio: 1/1;
-    background: rgb(143, 143, 143);
+    /* background: rgb(143, 143, 143); */
+    background: url("./file_souce/bitmap.png");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    box-shadow: 0 0 0 0 white;
     border-radius: 50%;
     transform: scale(1);
-    transition: transform 0.3s;
+    transition: transform 0.3s, box-shadow 0.3s;
 }
 
 /* App Animation */
 
 .app-icon:hover > .icon {
     transform: scale(1.1);
-    transition: transform 0.3s;
+    box-shadow: 0 0 3px 2px rgb(220, 220, 220);
+    transition: transform 0.3s, box-shadow 0.3s;
 }
 
 /* App Animation */
@@ -340,6 +357,6 @@
     }
 
     .file-manager, .display, .music, .setting {
-        padding: 1rem 20%;
+        padding: 1rem 30%;
     }
 }

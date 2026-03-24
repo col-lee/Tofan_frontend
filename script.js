@@ -1,6 +1,8 @@
-const IPaddress = "10.212.49.182";
-let gateway = `ws://${IPaddress}/ws`;
+const IPaddress = window.location.hostname;
+// const IPaddress = "10.110.7.182";
 // let gateway = `ws://${window.location.hostname}/ws`;
+let gateway = `ws://${IPaddress}/ws`;
+// let gateway = `ws://${IPaddress}/ws`;
 let websocket;
 
 // App-Icon Variable
@@ -120,26 +122,21 @@ btn_close_window.forEach((e)=>{
     });
 });
 
-// sound_level.addEventListener("touchend", (e)=>{
-//     // data_to_send.module = EVENT_MODULE.AUDIO
-//     // data_to_send.state = EVENT_STATE.ON
-//     // data_to_send.sound_level_value = e.target.value
-//     // websocket.send(JSON.stringify(data_to_send))
-// });
+async function checkToken(){
+    const request = await apiRequest(`http://${IPaddress}/api/checkToken`, method = "POST", {token:localStorage.getItem("esp32_token") || ""})
+    if(request.status) {
+        console.log("Welcom to my website for control Box panel")
+    } else {
+        localStorage.removeItem("esp32_token")
+        window.location.href = "/";
+    }
+}
 
 // IF WINDOW LOAD THEN INIT WEBSOCKET
 window.addEventListener("load", onLoad);
 function onLoad(event) {
     initWebSocket();
-
-    // CHECK TOKEN_LOGIN
-    const tokent_login = localStorage.getItem("okte");
-    const status = NULL
-    if (tokent_login != null || tokent_login != undefined || tokent_login != "") {
-        console.log("Welcom to this website.");
-    } else if (tokent_login == null || tokent_login == undefined || tokent_login == "") {
-        location.href = "/";
-    }
+    checkToken();
 }
 
 // INIT WEBSOCKET
@@ -218,8 +215,8 @@ async function apiRequest(url, method = 'GET', body = null) {
     if (body) {
       options.headers['Content-Type'] = 'application/json';
       options.body = JSON.stringify(body);
-      console.log(options.body);
-      console.log(options.method);
+    //   console.log(options.body);
+    //   console.log(options.method);
     }
 
     // เริ่ม Fetch

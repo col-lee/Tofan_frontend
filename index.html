@@ -257,15 +257,15 @@
         <form>
             <h1>Create Account</h1>
             <p>กรอกข้อมูลเพื่อลงทะเบียน</p>
-            
-            <div class="input-group"><input type="text" placeholder="Name" /></div>
+            <p class="alertMsg"></p>
+            <div class="input-group"><input type="text" placeholder="Name" id="input-username-signup" /></div>
             
             <div class="input-group">
-                <input type="password" placeholder="Password" class="password-input" />
+                <input type="password" placeholder="Password" id="input-password-signup" />
                 <i class="fa-solid fa-eye toggle-password"></i>
             </div>
 
-            <button>Sign Up</button>
+            <button class="btn-signup">Sign Up</button>
             <button class="ghost-mobile" id="signInMobile">Have an account? Sign In</button>
         </form>
     </div>
@@ -275,10 +275,10 @@
             <h1>Sign in</h1>
             <p>เข้าสู่ระบบเพื่อใช้งานต่อ</p>
             <p class="errorMsg"></p>
-            <div class="input-group"><input type="text" placeholder="Username" class="username-input" /></div>
+            <div class="input-group"><input type="text" placeholder="Username" id="username-input" /></div>
             
             <div class="input-group">
-                <input type="password" placeholder="Password" class="password-input" />
+                <input type="password" placeholder="Password" id="password-input" />
                 <i class="fa-solid fa-eye toggle-password"></i>
             </div>
 
@@ -305,6 +305,11 @@
 </div>
 
 <script>
+
+    const IP = window.location.hostname
+    // const IP = "10.110.7.182"
+    const gateway = `http://${IP}`;
+
     const container = document.getElementById('container');
     const signUpButton = document.getElementById('signUp');
     const signInButton = document.getElementById('signIn');
@@ -312,6 +317,7 @@
     const signInMobile = document.getElementById('signInMobile');
 
     const btn = document.querySelector('.loginBtn');
+    const btn_signup = document.querySelector(".btn-signup");
 
     // --- Panel Switching Logic ---
     const activateSignUp = (e) => { e.preventDefault(); container.classList.add("right-panel-active"); };
@@ -351,7 +357,7 @@
                     options.headers['Content-Type'] = 'application/json';
                     options.body = JSON.stringify(body);
                 }
-                const response = await fetch(API_URL + url, options);
+                const response = await fetch(url, options);
                 if (!response.ok) throw new Error(`Status: ${response.status}`);
                 return await response.json();
             } catch (error) {
@@ -367,53 +373,56 @@
             // ถ้ามี Token ให้ลองข้ามไปหน้าหลักเลย (หรือเช็คกับ Server ก่อนก็ได้)
             if (token) {
                 console.log("Found token, redirecting...");
-                // window.location.href = "control.html"; // เปิดหน้าควบคุม
+                window.location.href = "/controlPanel/"; // เปิดหน้าควบคุม
             }
         };
 
         // --- ฟังก์ชันกดปุ่ม Login ---
-        async function handleSignIn() {
-            const userIn = document.getElementsByClassName('username-input').value;
-            const passIn = document.getElementsByClassName('password-input').value;
-            const errorMsg = document.getElementsByClassName('errorMsg');
+        async function handleSignUP() {
+            const userIn = document.querySelector('#input-username-signup').value;
+            const passIn = document.querySelector('#input-password-signup').value;
+            const alertMsg = document.querySelector('.alertMsg');
 
             // 1. เปลี่ยนปุ่มเป็น Loading
-            btn.innerText = "Checking...";
-            btn.disabled = true;
-            errorMsg.innerText = "";
+            btn_signup.innerText = "Checking...";
+            btn_signup.disabled = true;
+            alertMsg.innerText = "";
 
             // 2. ส่งไปเช็คที่ ESP32
             // สมมติ API คือ /api/login ส่ง {u: username, p: password}
-            const result = await apiRequest('/api/signin', 'POST', { u: userIn, p: passIn });
+            const result = await apiRequest(gateway+'/api/signup', 'POST', { u: userIn, p: passIn });
+            // console.log(result)
 
             // 3. ตรวจสอบผลลัพธ์
-            if (result && result.status === 'ok') {
+            if (result.status) {
                 // ✅ Login สำเร็จ
-                errorMsg.style.color = "#4caf50"; // สีเขียว
-                errorMsg.innerText = "Login Success!";
+                alertMsg.style.color = "#4caf50"; // สีเขียว
+                alertMsg.innerText = "Login Success!";
+
+                // console.log(result.okte)
 
                 // บันทึก Token (ถ้ามี) หรือแค่จำว่าผ่านแล้ว
-                localStorage.setItem('esp32_token', result.okte || 'logged_in');
+                // localStorage.setItem('esp32_token', result.okte);
 
                 // รอ 1 วินาทีแล้วเปลี่ยนหน้า
                 setTimeout(() => {
-                    window.location.href = "/controlPanel/"; // ไปหน้าควบคุม
+                    window.location.href = "/"; // ไปหน้าควบคุม
                 }, 1000);
 
             } else {
                 // ❌ Login พลาด
-                errorMsg.style.color = "#ff4d4d"; // สีแดง
-                errorMsg.innerText = "Invalid Username or Password";
-                btn.innerText = "LOGIN";
-                btn.disabled = false;
+                alertMsg.style.color = "#ff4d4d"; // สีแดง
+                alertMsg.innerText = "Invalid Username or Password";
+                btn_signup.innerText = "LOGIN";
+                btn_signup.disabled = false;
             }
         }
 
         // --- ฟังก์ชันกดปุ่ม Login ---
-        async function handleLogin() {
-            const userIn = document.getElementsByClassName('username-input').value;
-            const passIn = document.getElementsByClassName('password-input').value;
-            const errorMsg = document.getElementsByClassName('errorMsg');
+        async function handleSigngIN() {
+            const userIn = document.querySelector('#username-input').value;
+            const passIn = document.querySelector('#password-input').value;
+            const errorMsg = document.querySelector('.errorMsg');
 
             // 1. เปลี่ยนปุ่มเป็น Loading
             btn.innerText = "Checking...";
@@ -422,16 +431,19 @@
 
             // 2. ส่งไปเช็คที่ ESP32
             // สมมติ API คือ /api/login ส่ง {u: username, p: password}
-            const result = await apiRequest('/api/signin', 'POST', { u: userIn, p: passIn });
+            const result = await apiRequest(gateway+'/api/signin', 'POST', { u: userIn, p: passIn, token:localStorage.getItem("esp32_token") || ""});
+            // console.log(result)
 
             // 3. ตรวจสอบผลลัพธ์
-            if (result && result.status === 'ok') {
+            if (result.status) {
                 // ✅ Login สำเร็จ
-                errorMsg.style.color = "#4caf50"; // สีเขียว
                 errorMsg.innerText = "Login Success!";
+                errorMsg.style.color = "green"; // สีเขียว
 
                 // บันทึก Token (ถ้ามี) หรือแค่จำว่าผ่านแล้ว
-                localStorage.setItem('esp32_token', result.okte || 'logged_in');
+                localStorage.setItem('esp32_token', result.okte);
+                // console.log(result.status);
+                // console.log(typeof(result.status));
 
                 // รอ 1 วินาทีแล้วเปลี่ยนหน้า
                 setTimeout(() => {
@@ -440,14 +452,16 @@
 
             } else {
                 // ❌ Login พลาด
-                errorMsg.style.color = "#ff4d4d"; // สีแดง
                 errorMsg.innerText = "Invalid Username or Password";
+                errorMsg.style.color = "red"; // สีแดง
                 btn.innerText = "LOGIN";
                 btn.disabled = false;
             }
         }
 
-        btn.addEventListener("click", handleSignIn);
+        btn_signup.addEventListener("click", handleSignUP)
+        btn.addEventListener("click", handleSigngIN);
+        
 
 </script>
 
