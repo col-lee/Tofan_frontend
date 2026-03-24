@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 WiFi Manager</title>
+    <style>
+        :root {
+            --primary: #007bff;
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --text: #333;
+            --text-light: #666;
+            --border: #ddd;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+        body {
+            background-color: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 90vh; /* เต็มจอแต่มีขอบ */
+        }
+
+        /* Header Section */
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h2 { margin: 0; font-size: 1.5rem; }
+        .header p { opacity: 0.8; font-size: 0.9rem; margin-top: 5px; }
+
+        /* WiFi List Section (Scrollable) */
+        .wifi-list-container {
+            flex: 1; /* กินพื้นที่ที่เหลือ */
+            overflow-y: auto;
+            padding: 0;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+        }
+
+        .refresh-btn {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            background: #eef5ff;
+            border: none;
+            padding: 10px;
+            color: var(--primary);
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .wifi-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .wifi-item:hover { background-color: #f8f9fa; }
+        .wifi-item:active { background-color: #e2e6ea; }
+
+        .wifi-name { font-weight: 500; color: var(--text); }
+        .wifi-signal { font-size: 0.8rem; color: var(--text-light); }
+        
+        .wifi-lock { margin-right: 8px; font-size: 0.8rem; }
+
+        /* Form Section (Fixed Bottom) */
+        .form-section {
+            padding: 20px;
+            background: var(--card-bg);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+
+        .input-group { margin-bottom: 15px; position: relative; }
+        
+        label { display: block; margin-bottom: 5px; color: var(--text-light); font-size: 0.9rem; }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input:focus { border-color: var(--primary); }
+
+        .password-wrapper { position: relative; }
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            user-select: none;
+        }
+
+        .btn-group { display: flex; gap: 10px; }
+
+        button.btn-submit {
+            flex: 2;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        button.btn-submit:disabled { background: #ccc; }
+
+        button.btn-clear {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            color: var(--text-light);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* Loading Overlay */
+        #loader {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: var(--text-light);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h2>WiFi Manager</h2>
+            <p>Select a network to connect</p>
+        </div>
+
+        <div class="wifi-list-container" id="wifiListContainer">
+            <button class="refresh-btn" onclick="scanNetworks()">↻ Scan Networks</button>
+            <div id="loader">Scanning...</div>
+            <div id="wifiList">
+                </div>
+        </div>
+
+        <div class="form-section">
+            <form id="wifiForm" onsubmit="event.preventDefault(); connectWiFi();">
+                <div class="input-group">
+                    <label for="ssid">Network Name (SSID)</label>
+                    <input type="text" id="ssid" name="ssid" placeholder="Select from list or type..." required>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" name="password" placeholder="Enter password">
+                        <span class="toggle-password" onclick="togglePassword()">👁</span>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" class="btn-clear" onclick="clearForm()">Clear</button>
+                    <button type="submit" class="btn-submit" id="connectBtn">Connect</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. จำลองข้อมูลสำหรับการทดสอบ (ถ้าใช้จริง ESP32 ต้องส่ง JSON มา) ---
+        // ให้แก้ IP นี้เป็น IP ของ ESP32 เมื่อใช้งานจริง
+        const API_BASE = "http://192.168.4.1"; 
+        
+        // ข้อมูลจำลอง (ถ้า ESP32 ยังไม่ตอบกลับ จะใช้ชุดนี้โชว์แทน)
+        const mockNetworks = [
+            { ssid: "Home_WiFi_2.4G", rssi: -50, secure: true },
+            { ssid: "Office_Guest", rssi: -75, secure: true },
+            { ssid: "Free_Public", rssi: -90, secure: false },
+            { ssid: "IoT_Device_Net", rssi: -60, secure: true }
+        ];
+
+        window.onload = function() {
+            scanNetworks();
+        };
+
+        // --- 2. ฟังก์ชันหลัก ---
+
+        async function scanNetworks() {
+            const list = document.getElementById("wifiList");
+            const loader = document.getElementById("loader");
+            
+            list.innerHTML = ""; // เคลียร์ของเก่า
+            loader.style.display = "block"; // โชว์ Loading
+
+            // ลองยิงไปที่ ESP32 (ถ้าไม่ได้ จะใช้ Mock Data)
+            try {
+                // สมมติ API ของ ESP32 คือ /scan
+                const response = await fetch(`${API_BASE}/scan`);
+                if(!response.ok) throw new Error("API Error");
+                
+                const networks = await response.json();
+                // console.log(networks);
+                renderList(networks);
+            } catch (e) {
+                console.warn("Scan failed (using mock data):", e);
+                // จำลองดีเลย์นิดนึงให้ดูเหมือนสแกน
+                // setTimeout(() => {
+                //     renderList(mockNetworks);
+                // }, 1000);
+            } finally {
+                loader.style.display = "none";
+            }
+        }
+
+        function renderList(networks) {
+            const list = document.getElementById("wifiList");
+            list.innerHTML = "";
+
+            if(networks.length === 0) {
+                list.innerHTML = "<div style='text-align:center; padding:20px; color:#999;'>No networks found</div>";
+                return;
+            }
+
+            networks.forEach(net => {
+                const item = document.createElement("div");
+                item.className = "wifi-item";
+                
+                // คำนวณความแรงสัญญาณ
+                let signalIcon = "weak";
+                if(net.rssi > -60) signalIcon = "Strong";
+                else if(net.rssi > -70) signalIcon = "Medium";
+
+                const lockIcon = net.secure ? "🔒" : "";
+
+                item.innerHTML = `
+                    <span class="wifi-name">${lockIcon} ${net.ssid}</span>
+                    <span class="wifi-signal">${signalIcon} (${net.rssi} dBm)</span>
+                `;
+
+                // **Feature เด็ด: คลิกแล้วเติม SSID อัตโนมัติ**
+                item.onclick = () => {
+                    document.getElementById("ssid").value = net.ssid;
+                    document.getElementById("password").focus();
+                };
+
+                list.appendChild(item);
+            });
+        }
+
+        async function connectWiFi() {
+            const ssid = document.getElementById("ssid").value;
+            const password = document.getElementById("password").value;
+            const btn = document.getElementById("connectBtn");
+
+            if(!ssid) return alert("Please enter SSID");
+
+            btn.innerText = "Connecting...";
+            btn.disabled = true;
+
+            try {
+                // ส่งข้อมูลไป ESP32
+                const response = await fetch(`${API_BASE}/wifi`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ssid, password })
+                });
+                
+                if(response.ok) {
+                    alert("Settings sent! ESP32 is connecting...");
+                } else {
+                    alert("Error sending settings.");
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Failed to send data to ESP32 (Check connection)");
+            } finally {
+                btn.innerText = "Connect";
+                btn.disabled = false;
+            }
+        }
+
+        // --- 3. ฟังก์ชันเสริม UI ---
+
+        function togglePassword() {
+            const passInput = document.getElementById("password");
+            const toggleBtn = document.querySelector(".toggle-password");
+            if (passInput.type === "password") {
+                passInput.type = "text";
+                toggleBtn.innerText = "🚫"; // Icon ปิดตา
+            } else {
+                passInput.type = "password";
+                toggleBtn.innerText = "👁"; // Icon เปิดตา
+            }
+        }
+
+        function clearForm() {
+            document.getElementById("ssid").value = "";
+            document.getElementById("password").value = "";
+        }
+    </script>
+</body>
+</html>

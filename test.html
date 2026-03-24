@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video & Image Crop Preview</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --dark: #1e293b;
+            --light: #f1f5f9;
+        }
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: var(--light);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        .app-container {
+            background: white;
+            width: 100%;
+            max-width: 900px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            padding: 20px;
+            background: var(--dark);
+            color: white;
+            text-align: center;
+        }
+
+        /* 1. Upload Section */
+        .upload-section {
+            padding: 40px;
+            text-align: center;
+            border-bottom: 2px dashed #e2e8f0;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .upload-section:hover { background: #f8fafc; }
+        .upload-icon { font-size: 40px; color: var(--primary); margin-bottom: 10px; }
+
+        /* 2. Editor Section */
+        .editor-section {
+            display: none; /* ซ่อนตอนแรก */
+            padding: 20px;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* พื้นที่แสดงผล (Workspace) */
+        .workspace {
+            background: #000;
+            height: 500px;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden; /* สำคัญ: ซ่อนส่วนเกิน */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* กล่องแสดงผลลัพธ์ (The "View Port") */
+        #viewport {
+            border: 2px solid var(--primary);
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7); /* ทำให้ส่วนนอกกรอบมืดลง */
+            position: relative;
+            overflow: hidden;
+            transition: width 0.3s, height 0.3s;
+            z-index: 10;
+        }
+
+        /* สื่อภายใน (Video/Image) สำหรับโหมด Video Crop */
+        #media-content {
+            position: absolute;
+            transform-origin: center center;
+            cursor: grab;
+        }
+        #media-content:active { cursor: grabbing; }
+
+        /* Controls Panel */
+        .controls {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #475569;
+        }
+
+        input[type="number"], select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+        }
+
+        input[type="range"] { width: 100%; cursor: pointer; }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+            width: 100%;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-outline { border: 1px solid #cbd5e0; background: white; color: #475569; }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .workspace { height: 300px; }
+            .controls { grid-template-columns: 1fr; }
+        }
+
+        /* ซ่อน Cropper JS default image */
+        #image-cropper-target { max-width: 100%; display: block; }
+        .hidden { display: none !important; }
+
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="header">
+        <h3><i class="fas fa-scissors"></i> ตัวจัดการไฟล์ (Crop & Resize)</h3>
+    </div>
+
+    <div class="upload-section" id="drop-zone">
+        <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+        <h3>คลิกหรือลากไฟล์มาวาง</h3>
+        <p style="color:#64748b">รองรับ: รูปภาพ (JPG, PNG) และ วิดีโอ (MP4)</p>
+        <input type="file" id="file-input" hidden accept="image/*,video/*">
+    </div>
+
+    <div class="editor-section" id="editor-section">
+        
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+            <button class="btn btn-outline" style="width:auto;" onclick="resetApp()"><i class="fas fa-arrow-left"></i> ยกเลิก</button>
+            <div id="file-info" style="align-self:center; font-weight:bold; color:#475569;"></div>
+        </div>
+
+        <div class="workspace" id="workspace">
+            <div id="viewport">
+                </div>
+            
+            <div id="image-wrapper" class="hidden" style="width:100%; height:100%;">
+                <img id="image-cropper-target" src="">
+            </div>
+        </div>
+
+        <div class="controls">
+            
+            <div class="control-group">
+                <label>📏 ขนาดผลลัพธ์ (Output Size)</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="number" id="inp-w" value="400" placeholder="W">
+                    <span style="align-self:center;">x</span>
+                    <input type="number" id="inp-h" value="400" placeholder="H">
+                </div>
+                <div style="margin-top:5px; font-size:0.8rem;">
+                    <button onclick="setPreset(1,1)" style="cursor:pointer; border:1px solid #ddd; padding:2px 5px;">1:1</button>
+                    <button onclick="setPreset(16,9)" style="cursor:pointer; border:1px solid #ddd; padding:2px 5px;">16:9</button>
+                    <button onclick="setPreset(9,16)" style="cursor:pointer; border:1px solid #ddd; padding:2px 5px;">9:16</button>
+                </div>
+            </div>
+
+            <div class="control-group" id="video-controls">
+                <label>🔍 ซูม (Scale)</label>
+                <input type="range" id="range-scale" min="0.1" max="3" step="0.1" value="1">
+                
+                <label style="margin-top:10px;">↔️ ตำแหน่ง (ลากที่วิดีโอได้)</label>
+                <div style="display:flex; gap:5px; font-size:0.8rem; color:#666;">
+                    X: <span id="val-x">0</span>, Y: <span id="val-y">0</span>
+                </div>
+                <button onclick="toggleVideo()" style="margin-top:5px; padding:5px; width:100%; background:#e2e8f0; border:none; border-radius:4px;">⏯ เล่น/หยุด วิดีโอ</button>
+            </div>
+
+            <div class="control-group" style="display:flex; align-items:flex-end;">
+                <button class="btn btn-primary" onclick="processUpload()">
+                    <i class="fas fa-check"></i> ยืนยันและอัปโหลด
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+    // --- Elements ---
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const editorSection = document.getElementById('editor-section');
+    const workspace = document.getElementById('workspace');
+    
+    // Video Specific
+    const viewport = document.getElementById('viewport');
+    const videoControls = document.getElementById('video-controls');
+    const rangeScale = document.getElementById('range-scale');
+    const inpW = document.getElementById('inp-w');
+    const inpH = document.getElementById('inp-h');
+    const valX = document.getElementById('val-x');
+    const valY = document.getElementById('val-y');
+
+    // Image Specific
+    const imageWrapper = document.getElementById('image-wrapper');
+    const imageTarget = document.getElementById('image-cropper-target');
+
+    // State
+    let currentFile = null;
+    let fileType = null; // 'video' or 'image'
+    let cropper = null;
+    let videoEl = null;
+
+    // Video Transform State
+    let vScale = 1;
+    let vPosX = 0;
+    let vPosY = 0;
+    let isDragging = false;
+    let startX, startY, initialX, initialY;
+
+    // --- Event Listeners ---
+    dropZone.onclick = () => fileInput.click();
+    fileInput.onchange = (e) => handleFile(e.target.files[0]);
+    
+    // Drag & Drop UI
+    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.background = '#e0f2fe'; };
+    dropZone.ondragleave = () => { dropZone.style.background = 'white'; };
+    dropZone.ondrop = (e) => {
+        e.preventDefault();
+        dropZone.style.background = 'white';
+        if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    };
+
+    // Input Change Listeners
+    inpW.addEventListener('input', updateViewportSize);
+    inpH.addEventListener('input', updateViewportSize);
+    rangeScale.addEventListener('input', updateVideoTransform);
+
+    // --- Main Logic ---
+
+    function handleFile(file) {
+        if(!file) return;
+        currentFile = file;
+        dropZone.style.display = 'none';
+        editorSection.style.display = 'flex';
+        document.getElementById('file-info').innerText = file.name;
+
+        const url = URL.createObjectURL(file);
+
+        if (file.type.startsWith('video/')) {
+            setupVideoMode(url);
+        } else if (file.type.startsWith('image/')) {
+            setupImageMode(url);
+        } else {
+            alert("รองรับเฉพาะไฟล์รูปภาพและวิดีโอ");
+            resetApp();
+        }
+    }
+
+    // --- 1. Video Mode Logic ---
+    function setupVideoMode(url) {
+        fileType = 'video';
+        videoControls.style.display = 'block';
+        imageWrapper.classList.add('hidden');
+        viewport.style.display = 'block';
+
+        // Create Video Element inside Viewport
+        viewport.innerHTML = '';
+        videoEl = document.createElement('video');
+        videoEl.src = url;
+        videoEl.id = 'media-content';
+        videoEl.autoplay = true;
+        videoEl.loop = true;
+        videoEl.muted = true; // Auto-play requires muted often
+        videoEl.style.height = "100%"; // Fit height initially
+        
+        // Load metadata to center it
+        videoEl.onloadedmetadata = () => {
+             // Center video logic could go here
+        };
+
+        viewport.appendChild(videoEl);
+        
+        // Init Drag Events for Video
+        initDraggable(videoEl);
+        
+        updateViewportSize();
+    }
+
+    function initDraggable(el) {
+        el.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            initialX = vPosX;
+            initialY = vPosY;
+            el.style.cursor = 'grabbing';
+            e.preventDefault(); // Prevent default drag behavior
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            vPosX = initialX + dx;
+            vPosY = initialY + dy;
+            updateVideoTransform(false); // false = don't update slider
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            if(el) el.style.cursor = 'grab';
+        });
+    }
+
+    function updateViewportSize() {
+        if(fileType !== 'video') return;
+        
+        // Update Viewport Box Size
+        const w = parseInt(inpW.value) || 300;
+        const h = parseInt(inpH.value) || 300;
+        
+        viewport.style.width = `${w}px`;
+        viewport.style.height = `${h}px`;
+    }
+
+    function updateVideoTransform(updateSlider = true) {
+        if (!videoEl) return;
+        
+        if (updateSlider) {
+            vScale = parseFloat(rangeScale.value);
+        }
+
+        // Apply CSS Transform
+        // Note: translate must be pixel based
+        videoEl.style.transform = `translate(${vPosX}px, ${vPosY}px) scale(${vScale})`;
+        
+        // Update UI Info
+        valX.innerText = Math.round(vPosX);
+        valY.innerText = Math.round(vPosY);
+    }
+
+    function toggleVideo() {
+        if(videoEl) {
+            if(videoEl.paused) videoEl.play();
+            else videoEl.pause();
+        }
+    }
+
+    // --- 2. Image Mode Logic ---
+    function setupImageMode(url) {
+        fileType = 'image';
+        videoControls.style.display = 'none';
+        viewport.style.display = 'none'; // Hide video viewport
+        imageWrapper.classList.remove('hidden');
+
+        imageTarget.src = url;
+        
+        // Init Cropper
+        if(cropper) cropper.destroy();
+        cropper = new Cropper(imageTarget, {
+            viewMode: 1,
+            dragMode: 'move',
+            autoCropArea: 1,
+            restore: false,
+            guides: true,
+            center: true,
+            highlight: false,
+            cropBoxMovable: false, // Fix the box, move the image instead (Instagram style)
+            cropBoxResizable: false,
+            toggleDragModeOnDblclick: false,
+            ready() {
+                // Sync initial size
+                const w = parseInt(inpW.value) || 300;
+                const h = parseInt(inpH.value) || 300;
+                cropper.setCropBoxData({ width: w, height: h });
+            }
+        });
+        
+        // Listener for input size change to update cropper box
+        const updateCropBox = () => {
+             if(cropper) {
+                 cropper.setCropBoxData({ 
+                     width: parseFloat(inpW.value), 
+                     height: parseFloat(inpH.value) 
+                 });
+             }
+        };
+        inpW.addEventListener('change', updateCropBox);
+        inpH.addEventListener('change', updateCropBox);
+    }
+
+    // --- Utility ---
+    function setPreset(wRatio, hRatio) {
+        // Calculate based on current Width input (fixing width, changing height)
+        const currentW = parseInt(inpW.value) || 400;
+        const newH = Math.round(currentW * (hRatio / wRatio));
+        
+        inpH.value = newH;
+        
+        if(fileType === 'video') updateViewportSize();
+        if(fileType === 'image' && cropper) {
+            cropper.setAspectRatio(wRatio/hRatio);
+        }
+    }
+
+    function processUpload() {
+        // Gather Data
+        const outputW = parseInt(inpW.value);
+        const outputH = parseInt(inpH.value);
+        
+        let payload = {
+            originalFile: currentFile,
+            targetWidth: outputW,
+            targetHeight: outputH
+        };
+
+        if (fileType === 'video') {
+            // For Video: We send the Transform Data to Server (FFmpeg)
+            // Note: vPosX/Y are relative to the center/origin in CSS. 
+            // In backend processing, you need to map these to FFmpeg crop filter logic.
+            payload.transform = {
+                scale: vScale,
+                x: vPosX,
+                y: vPosY,
+                type: 'video_transform' // Server should crop based on this
+            };
+            alert(`📦 กำลังส่งข้อมูลวิดีโอไปประมวลผล...\n\nScale: ${vScale}\nOffset: ${vPosX}, ${vPosY}\nTarget Size: ${outputW}x${outputH}`);
+        
+        } else {
+            // For Image: Client-side render
+            const canvas = cropper.getCroppedCanvas({
+                width: outputW,
+                height: outputH
+            });
+            
+            canvas.toBlob((blob) => {
+                alert(`📸 รูปภาพพร้อมอัปโหลด!\nขนาดใหม่: ${outputW}x${outputH}\nขนาดไฟล์: ${(blob.size/1024).toFixed(2)} KB`);
+                // Do actual upload here...
+            });
+        }
+    }
+
+    function resetApp() {
+        if(cropper) cropper.destroy();
+        fileInput.value = '';
+        editorSection.style.display = 'none';
+        dropZone.style.display = 'block';
+        videoEl = null;
+    }
+
+</script>
+</body>
+</html>

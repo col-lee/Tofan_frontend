@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 Smart Upload</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --success-color: #10b981;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-color: #1f2937;
+        }
+
+        * { padding: 0; margin: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+
+        body {
+            width: 100%; min-height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 20px 20px;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--card-bg); width: 100%; max-width: 550px;
+            padding: 2rem; border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        /* Home Button Style */
+        .home-btn {
+            position: absolute; top: 20px; left: 20px;
+            text-decoration: none; color: var(--text-color); font-size: 1.1rem;
+            display: flex; align-items: center; gap: 5px; transition: 0.3s;
+        }
+        .home-btn:hover { color: var(--primary-color); transform: translateX(-3px); }
+
+        .header { text-align: center; margin-top: 1.5rem; margin-bottom: 1.5rem; font-size: 1.6rem; color: var(--text-color); font-weight: 600; }
+
+        .upload-area {
+            border: 2px dashed #cbd5e1; border-radius: 12px; padding: 40px 20px;
+            text-align: center; cursor: pointer; transition: 0.3s; position: relative;
+            background: #f8fafc;
+        }
+        .upload-area:hover { border-color: var(--primary-color); background: #eef2ff; }
+        .upload-area input[type="file"] {
+            position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer;
+        }
+
+        /* Preview & Cropper Area */
+        #preview-wrapper { 
+            margin-top: 20px; display: none; 
+            background: #000; border-radius: 8px; overflow: hidden;
+            max-height: 400px; /* จำกัดความสูงไม่ให้ล้นจอ */
+        }
+        #image-preview { max-width: 100%; display: block; }
+        #file-name { font-size: 0.9rem; color: #4b5563; margin-top: 8px; text-align: center; font-weight: 500;}
+
+        /* Controls Area */
+        .controls-area {
+            display: none; margin-top: 20px;
+            background: #f9fafb; padding: 15px; border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .control-section { margin-bottom: 15px; border-bottom: 1px dashed #e5e7eb; padding-bottom: 15px; }
+        .control-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        
+        .control-label { display: block; font-size: 0.85rem; font-weight: 600; color: #4b5563; margin-bottom: 8px; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Preset Buttons */
+        .preset-container { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+        .btn-preset {
+            padding: 6px 12px; font-size: 0.85rem; border: 1px solid #d1d5db;
+            background: white; border-radius: 6px; cursor: pointer; color: #374151; transition: 0.2s;
+        }
+        .btn-preset:hover, .btn-preset.active {
+            background: var(--primary-color); color: white; border-color: var(--primary-color);
+        }
+
+        /* Resize Inputs */
+        .resize-inputs { display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .resize-inputs input {
+            width: 80px; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;
+            text-align: center; font-size: 0.9rem;
+        }
+        .resize-inputs span { color: #6b7280; font-weight: bold; }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%; background-color: #e5e7eb; border-radius: 99px;
+            margin: 20px 0; height: 10px; overflow: hidden; display: none;
+        }
+        .progress-bar {
+            width: 0%; height: 100%; background-color: var(--primary-color); transition: width 0.3s ease;
+        }
+
+        .btn-group { display: flex; gap: 12px; margin-top: 1.5rem; }
+        button { flex: 1; padding: 14px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 1rem; }
+        
+        button[type="submit"] { background-color: var(--primary-color); color: white; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2); }
+        button[type="submit"]:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        button[type="submit"]:disabled { background-color: #9ca3af; cursor: not-allowed; transform: none; box-shadow: none; }
+        
+        button[type="button"] { background-color: white; border: 1px solid #d1d5db; color: #4b5563; }
+        button[type="button"]:hover { background-color: #f3f4f6; }
+
+    </style>
+</head>
+<body>
+    <section class="container">
+        <a href="/" class="home-btn"><i class="fas fa-arrow-left"></i> Home</a>
+
+        <form id="uploadForm">
+            <h2 class="header">Upload & Edit</h2>
+            
+            <div class="upload-area" id="upload-area">
+                <input type="file" name="file" id="fileInput">
+                <div class="upload-label">
+                    <p style="color: #64748b; margin-bottom: 5px;"><i class="fas fa-image fa-3x"></i></p>
+                    <p style="font-weight: 500; color: #334155;">Click or Drag file here</p>
+                    <p style="font-size: 0.8rem; color: #94a3b8;">Supports: JPG, PNG, TXT, CSV</p>
+                </div>
+            </div>
+
+            <div id="preview-wrapper">
+                <img id="image-preview" src="">
+            </div>
+            <p id="file-name"></p>
+
+            <div class="controls-area" id="controls-area">
+                
+                <div class="control-section">
+                    <span class="control-label"><i class="fas fa-crop-alt"></i> Crop Ratio</span>
+                    <div class="preset-container">
+                        <button type="button" class="btn-preset" onclick="setRatio(1)">1:1</button>
+                        <button type="button" class="btn-preset" onclick="setRatio(16/9)">16:9</button>
+                        <button type="button" class="btn-preset" onclick="setRatio(4/3)">4:3</button>
+                        <button type="button" class="btn-preset" onclick="setRatio(2/3)">2:3</button>
+                        <button type="button" class="btn-preset active" onclick="setRatio(NaN)">Free</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <span class="control-label"><i class="fas fa-expand"></i> Output Size (px)</span>
+                    <div class="resize-inputs">
+                        <input type="number" id="img-width" placeholder="W">
+                        <span>x</span>
+                        <input type="number" id="img-height" placeholder="H">
+                    </div>
+                    <p style="text-align:center; font-size:0.75rem; color:#9ca3af; margin-top:5px;">Leave empty to use original size</p>
+                </div>
+            </div>
+
+            <div class="progress-container" id="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <p id="status-text" style="text-align: center; font-size: 0.9rem; margin-top: 10px; color: var(--text-color); font-weight: 500;"></p>
+
+            <div class="btn-group">
+                <button type="button" onclick="resetForm()"><i class="fas fa-undo"></i> Reset</button>
+                <button type="submit" id="btn-submit"><i class="fas fa-cloud-upload-alt"></i> Upload</button>
+            </div>
+        </form>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <script>
+        // --- Variables & Elements ---
+        const fileInput = document.getElementById('fileInput');
+        const previewWrapper = document.getElementById('preview-wrapper');
+        const imagePreview = document.getElementById('image-preview');
+        const controlsArea = document.getElementById('controls-area');
+        const fileNameDisplay = document.getElementById('file-name');
+        
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const statusText = document.getElementById('status-text');
+        const btnSubmit = document.getElementById('btn-submit');
+        
+        const inpWidth = document.getElementById('img-width');
+        const inpHeight = document.getElementById('img-height');
+
+        let cropper = null;
+        let currentFile = null;
+
+        // --- Event Listeners ---
+
+        // 1. File Selection
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                currentFile = file;
+                fileNameDisplay.textContent = file.name;
+                previewWrapper.style.display = 'block';
+
+                if (file.type.startsWith('image/')) {
+                    setupCropper(file);
+                } else {
+                    // Non-image file handling
+                    destroyCropper();
+                    imagePreview.style.display = 'none';
+                    controlsArea.style.display = 'none';
+                    previewWrapper.innerHTML = `<div style="padding:40px; color:white; text-align:center;"><i class="fas fa-file-alt fa-3x"></i><br>File Ready</div>`;
+                }
+            }
+        });
+
+        // 2. Setup Cropper.js
+        function setupCropper(file) {
+            destroyCropper(); // Clear old instance
+            
+            // Reset Preview Element
+            previewWrapper.innerHTML = ''; 
+            const img = document.createElement('img');
+            img.id = 'image-preview';
+            img.style.maxWidth = '100%';
+            previewWrapper.appendChild(img);
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                img.src = e.target.result;
+                
+                cropper = new Cropper(img, {
+                    viewMode: 1,
+                    dragMode: 'move',
+                    aspectRatio: NaN, // Default to Free
+                    autoCropArea: 0.9,
+                    restore: false,
+                    guides: true,
+                    center: true,
+                    highlight: false,
+                    cropBoxMovable: true,
+                    cropBoxResizable: true,
+                    toggleDragModeOnDblclick: false,
+                    ready() {
+                        // Populate Width/Height with natural dimensions
+                        const data = this.cropper.getImageData();
+                        inpWidth.value = Math.round(data.naturalWidth);
+                        inpHeight.value = Math.round(data.naturalHeight);
+                    },
+                    crop(event) {
+                        // Optional: Update inputs based on crop box? 
+                        // Usually better to let user define Output Size independently.
+                    }
+                });
+                
+                controlsArea.style.display = 'block';
+                highlightPresetButton(NaN); // Reset active button style
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 3. Helper: Set Aspect Ratio
+        window.setRatio = function(ratio) {
+            if (cropper) {
+                cropper.setAspectRatio(ratio);
+                highlightPresetButton(ratio);
+            }
+        }
+
+        function highlightPresetButton(ratio) {
+            // Remove active class from all
+            document.querySelectorAll('.btn-preset').forEach(btn => btn.classList.remove('active'));
+            
+            // Find button and add active class (simple logic)
+            const buttons = document.querySelectorAll('.btn-preset');
+            if(isNaN(ratio)) { buttons[4].classList.add('active'); return; } // Free
+            if(ratio === 1) buttons[0].classList.add('active');
+            if(ratio === 16/9) buttons[1].classList.add('active');
+            if(ratio === 4/3) buttons[2].classList.add('active');
+            if(ratio === 2/3) buttons[3].classList.add('active');
+        }
+
+        function destroyCropper() {
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+        }
+
+        // 4. Upload Logic
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!currentFile && !fileInput.files[0]) { alert("Please select a file first!"); return; }
+
+            const formData = new FormData();
+
+            if (cropper) {
+                // Image Processing
+                let w = parseInt(inpWidth.value) || 0;
+                let h = parseInt(inpHeight.value) || 0;
+
+                const canvas = cropper.getCroppedCanvas({
+                    width: w > 0 ? w : undefined,
+                    height: h > 0 ? h : undefined,
+                    fillColor: '#fff', // กรณีมีพื้นหลังใสให้เป็นสีขาว
+                });
+
+                canvas.toBlob((blob) => {
+                    const newFile = new File([blob], currentFile.name, { type: "image/jpeg" });
+                    formData.append('file', newFile);
+                    performUpload(formData);
+                }, 'image/jpeg', 0.9);
+
+            } else {
+                // Regular File
+                formData.append('file', fileInput.files[0] || currentFile);
+                performUpload(formData);
+            }
+        });
+
+        // 5. AJAX Upload
+        function performUpload(formData) {
+            const xhr = new XMLHttpRequest();
+            
+            // UI Update
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressBar.style.backgroundColor = 'var(--primary-color)';
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            statusText.textContent = 'Uploading to ESP32...';
+
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    progressBar.style.width = percent + '%';
+                    statusText.textContent = `${percent}% Uploaded`;
+                }
+            });
+
+            xhr.addEventListener('load', () => {
+                if (xhr.status === 200) {
+                    progressBar.style.backgroundColor = 'var(--success-color)';
+                    statusText.textContent = '✅ Upload Successful!';
+                    statusText.style.color = 'var(--success-color)';
+                    btnSubmit.innerHTML = '<i class="fas fa-check"></i> Done';
+                    
+                    setTimeout(() => {
+                        resetForm();
+                        statusText.textContent = 'Ready for next file';
+                        statusText.style.color = 'var(--text-color)';
+                        alert("File saved successfully!");
+                    }, 2000);
+                } else {
+                    handleError();
+                }
+            });
+
+            xhr.addEventListener('error', handleError);
+
+            xhr.open('POST', '/uploadfile');
+            xhr.send(formData);
+        }
+
+        function handleError() {
+            statusText.textContent = '❌ Upload Failed / Server Error';
+            statusText.style.color = 'red';
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<i class="fas fa-redo"></i> Retry';
+        }
+
+        window.resetForm = function() {
+            destroyCropper();
+            currentFile = null;
+            fileInput.value = '';
+            previewWrapper.style.display = 'none';
+            controlsArea.style.display = 'none';
+            progressContainer.style.display = 'none';
+            fileNameDisplay.textContent = '';
+            inpWidth.value = '';
+            inpHeight.value = '';
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Upload';
+            statusText.textContent = '';
+        }
+    </script>
+</body>
+</html>
