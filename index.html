@@ -3,466 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login & Register - Minimal Grey</title>
+    <title>Login - Control Panel</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* --- CSS Variables & Reset --- */
         :root {
-            --bg-color: #f0f2f5;
-            --white: #ffffff;
-            --grey-light: #e0e0e0;
-            --grey-text: #888888;
-            --dark: #333333;
-            --shadow: 0 14px 28px rgba(0,0,0,0.05), 0 10px 10px rgba(0,0,0,0.05);
-            --transition: all 0.6s ease-in-out;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-dark: #1f2937;
+            --text-muted: #6b7280;
+            --error: #ef4444;
+            --success: #10b981;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
 
         body {
-            font-family: 'Poppins', sans-serif;
-            background: var(--bg-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            height: 100svh;
-            color: var(--dark);
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 20px 20px;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; color: var(--text-dark);
         }
 
-        h1 { font-weight: 600; margin-bottom: 0.5rem; }
-        
-        p {
-            font-size: 14px;
-            font-weight: 300;
-            line-height: 20px;
-            letter-spacing: 0.5px;
-            margin: 20px 0 30px;
-            color: var(--grey-text);
-        }
-
-        span { font-size: 12px; color: var(--dark); }
-
-        a {
-            color: var(--dark);
-            font-size: 14px;
-            text-decoration: none;
-            margin: 15px 0;
-            border-bottom: 1px solid transparent;
-            transition: 0.3s;
-        }
-        a:hover { border-bottom: 1px solid var(--dark); }
-
-        /* --- Form Elements --- */
-        button {
-            border-radius: 20px;
-            border: 1px solid var(--dark);
-            background-color: var(--dark);
-            color: var(--white);
-            font-size: 12px;
-            font-weight: bold;
-            padding: 12px 45px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            transition: transform 80ms ease-in, background 0.3s;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        button:active { transform: scale(0.95); }
-        button:focus { outline: none; }
-        
-        button.ghost {
-            background-color: transparent;
-            border-color: var(--white);
-            color: var(--white);
-        }
-        
-        button.ghost-mobile {
-            display: none;
-            background-color: transparent;
-            border-color: var(--dark);
-            color: var(--dark);
-            margin-top: 20px;
-        }
-
-        form {
-            background-color: var(--white);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            padding: 0 50px;
-            height: 100%;
+        .login-card {
+            background: var(--card-bg);
+            width: 100%; max-width: 400px;
+            padding: 40px 30px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01);
             text-align: center;
         }
 
-        input {
-            background-color: #f4f4f4;
-            border: none;
-            padding: 12px 15px;
-            width: 100%;
-            border-radius: 5px;
-            outline: none;
-            font-family: 'Poppins', sans-serif;
+        .icon-header {
+            width: 60px; height: 60px;
+            background: #eef2ff; color: var(--primary);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 24px; margin: 0 auto 20px;
         }
 
-        /* --- Password Input Wrapper (New Feature) --- */
-        .input-group {
-            position: relative;
-            width: 100%;
-            margin: 8px 0;
-        }
+        h1 { font-weight: 600; font-size: 1.5rem; margin-bottom: 8px; }
+        p.subtitle { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 25px; }
+
+        .input-group { position: relative; margin-bottom: 15px; text-align: left; }
         
-        /* ย้าย margin จาก input มาที่ input-group แทนเพื่อให้จัดระเบียบง่าย */
         .input-group input {
-            margin: 0;
-            padding-right: 40px; /* เว้นที่ด้านขวาไว้ใส่ไอคอนตา */
+            width: 100%; padding: 14px 45px 14px 15px;
+            background: #f9fafb; border: 1px solid #e5e7eb;
+            border-radius: 12px; outline: none; transition: 0.3s; font-size: 0.95rem;
+        }
+        .input-group input:focus {
+            border-color: var(--primary); background: #fff;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
         }
 
         .toggle-password {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #aaa;
-            cursor: pointer;
-            font-size: 14px;
-            transition: color 0.3s;
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            color: #9ca3af; cursor: pointer; transition: 0.3s;
         }
-        
-        .toggle-password:hover {
-            color: var(--dark);
+        .toggle-password:hover { color: var(--text-dark); }
+
+        .btn-login {
+            width: 100%; padding: 14px; margin-top: 10px;
+            background: var(--primary); color: white;
+            border: none; border-radius: 12px; font-weight: 600; font-size: 1rem;
+            cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
         }
+        .btn-login:hover { background: var(--primary-hover); transform: translateY(-2px); }
+        .btn-login:disabled { background: #9ca3af; cursor: not-allowed; transform: none; box-shadow: none; }
 
-        /* --- Container Structure --- */
-        .container {
-            background-color: var(--white);
-            border-radius: 20px;
-            box-shadow: var(--shadow);
-            position: relative;
-            overflow: hidden;
-            width: 768px;
-            max-width: 100%;
-            min-height: 480px;
-        }
-
-        .form-container {
-            position: absolute;
-            top: 0;
-            height: 100%;
-            transition: var(--transition);
-        }
-
-        .sign-in-container { left: 0; width: 50%; z-index: 2; }
-        .sign-up-container { left: 0; width: 50%; opacity: 0; z-index: 1; }
-
-        /* --- Animation Logic --- */
-        .container.right-panel-active .sign-in-container { transform: translateX(100%); }
-        .container.right-panel-active .sign-up-container {
-            transform: translateX(100%);
-            opacity: 1;
-            z-index: 5;
-            animation: show 0.6s;
-        }
-
-        @keyframes show {
-            0%, 49.99% { opacity: 0; z-index: 1; }
-            50%, 100% { opacity: 1; z-index: 5; }
-        }
-
-        /* --- Overlay --- */
-        .overlay-container {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            width: 50%;
-            height: 100%;
-            overflow: hidden;
-            transition: transform 0.6s ease-in-out;
-            z-index: 100;
-        }
-
-        .container.right-panel-active .overlay-container { transform: translateX(-100%); }
-
-        .overlay {
-            background: linear-gradient(to right, #444, #222);
-            color: var(--white);
-            position: relative;
-            left: -100%;
-            height: 100%;
-            width: 200%;
-            transform: translateX(0);
-            transition: transform 0.6s ease-in-out;
-        }
-
-        .container.right-panel-active .overlay { transform: translateX(50%); }
-
-        .overlay-panel {
-            position: absolute;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            padding: 0 40px;
-            text-align: center;
-            top: 0;
-            height: 100%;
-            width: 50%;
-            transform: translateX(0);
-            transition: transform 0.6s ease-in-out;
-        }
-
-        .overlay-left { transform: translateX(-20%); }
-        .container.right-panel-active .overlay-left { transform: translateX(0); }
-        .overlay-right { right: 0; transform: translateX(0); }
-        .container.right-panel-active .overlay-right { transform: translateX(20%); }
-
-        /* --- Responsive --- */
-        @media (max-width: 768px) {
-            .container { width: 90vw; min-height: 600px; overflow: visible; }
-            .form-container { width: 100%; position: absolute; }
-            .overlay-container { display: none; }
-            
-            .sign-in-container { z-index: 2; opacity: 1; }
-            .sign-up-container { z-index: 1; opacity: 0; pointer-events: none; }
-
-            .container.right-panel-active .sign-in-container {
-                transform: translateX(0);
-                opacity: 0;
-                z-index: 1;
-                pointer-events: none;
-            }
-
-            .container.right-panel-active .sign-up-container {
-                transform: translateX(0);
-                opacity: 1;
-                z-index: 5;
-                pointer-events: auto;
-                animation: none;
-            }
-            button.ghost-mobile { display: block; }
-        }
+        .msg-box { font-size: 0.85rem; min-height: 20px; margin-bottom: 15px; font-weight: 500; }
     </style>
 </head>
 <body>
 
-<div class="container" id="container">
-    
-    <div class="form-container sign-up-container">
-        <form>
-            <h1>Create Account</h1>
-            <p>กรอกข้อมูลเพื่อลงทะเบียน</p>
-            <p class="alertMsg"></p>
-            <div class="input-group"><input type="text" placeholder="Name" id="input-username-signup" /></div>
-            
-            <div class="input-group">
-                <input type="password" placeholder="Password" id="input-password-signup" />
-                <i class="fa-solid fa-eye toggle-password"></i>
-            </div>
+<div class="login-card">
+    <div class="icon-header"><i class="fa-solid fa-lock"></i></div>
+    <h1>Welcome Back</h1>
+    <p class="subtitle">เข้าสู่ระบบเพื่อควบคุมอุปกรณ์</p>
 
-            <button class="btn-signup">Sign Up</button>
-            <button class="ghost-mobile" id="signInMobile">Have an account? Sign In</button>
-        </form>
-    </div>
+    <div class="msg-box errorMsg"></div>
 
-    <div class="form-container sign-in-container">
-        <form>
-            <h1>Sign in</h1>
-            <p>เข้าสู่ระบบเพื่อใช้งานต่อ</p>
-            <p class="errorMsg"></p>
-            <div class="input-group"><input type="text" placeholder="Username" id="username-input" /></div>
-            
-            <div class="input-group">
-                <input type="password" placeholder="Password" id="password-input" />
-                <i class="fa-solid fa-eye toggle-password"></i>
-            </div>
-
-            <a href="#">Forgot your password?</a>
-            <button class="loginBtn">Sign In</button>
-            <button class="ghost-mobile" id="signUpMobile">New here? Sign Up</button>
-        </form>
-    </div>
-
-    <div class="overlay-container">
-        <div class="overlay">
-            <div class="overlay-panel overlay-left">
-                <h1>Welcome Back!</h1>
-                <p>ถ้าคุณมีบัญชีอยู่แล้ว <br>กดปุ่มด้านล่างเพื่อเข้าสู่ระบบ</p>
-                <button class="ghost" id="signIn">Sign In</button>
-            </div>
-            <div class="overlay-panel overlay-right">
-                <h1>Hello, Friend!</h1>
-                <p>ยังไม่มีบัญชีใช่ไหม? <br>กดปุ่มด้านล่างเพื่อลงทะเบียนเลย</p>
-                <button class="ghost" id="signUp">Sign Up</button>
-            </div>
+    <form onsubmit="event.preventDefault(); handleSigngIN();">
+        <div class="input-group">
+            <input type="text" placeholder="Username" id="username-input" required />
         </div>
-    </div>
+        
+        <div class="input-group">
+            <input type="password" placeholder="Password" id="password-input" required />
+            <i class="fa-solid fa-eye toggle-password"></i>
+        </div>
+
+        <button type="submit" class="btn-login" id="loginBtn">Sign In</button>
+    </form>
 </div>
 
 <script>
-
-    const IP = window.location.hostname
-    // const IP = "10.110.7.182"
+    const IP = window.location.hostname;
     const gateway = `http://${IP}`;
 
-    const container = document.getElementById('container');
-    const signUpButton = document.getElementById('signUp');
-    const signInButton = document.getElementById('signIn');
-    const signUpMobile = document.getElementById('signUpMobile');
-    const signInMobile = document.getElementById('signInMobile');
-
-    const btn = document.querySelector('.loginBtn');
-    const btn_signup = document.querySelector(".btn-signup");
-
-    // --- Panel Switching Logic ---
-    const activateSignUp = (e) => { e.preventDefault(); container.classList.add("right-panel-active"); };
-    const activateSignIn = (e) => { e.preventDefault(); container.classList.remove("right-panel-active"); };
-
-    signUpButton.addEventListener('click', activateSignUp);
-    signInButton.addEventListener('click', activateSignIn);
-    signUpMobile.addEventListener('click', activateSignUp);
-    signInMobile.addEventListener('click', activateSignIn);
-
-    // --- Password Toggle Logic (New Feature) ---
-    // ค้นหาทุกปุ่มที่เป็นรูปตา
-    const toggleButtons = document.querySelectorAll('.toggle-password');
-
-    toggleButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            // หา input ที่อยู่ข้างๆ ปุ่มตานั้นๆ
-            const input = this.previousElementSibling;
-            
-            // สลับ type ระหว่าง password กับ text
-            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-            input.setAttribute('type', type);
-            
-            // สลับไอคอน (ตาเปิด/ตาปิด)
-            this.classList.toggle('fa-eye');
-            this.classList.toggle('fa-eye-slash');
-        });
+    // Password Toggle
+    document.querySelector('.toggle-password').addEventListener('click', function() {
+        const input = this.previousElementSibling;
+        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+        input.setAttribute('type', type);
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
     });
 
-    const API_URL = "";
-
-        // --- ฟังก์ชัน Fetch มาตรฐาน ---
-        async function apiRequest(url, method = 'POST', body = null) {
-            try {
-                const options = { method: method, headers: {} };
-                if (body) {
-                    options.headers['Content-Type'] = 'application/json';
-                    options.body = JSON.stringify(body);
-                }
-                const response = await fetch(url, options);
-                if (!response.ok) throw new Error(`Status: ${response.status}`);
-                return await response.json();
-            } catch (error) {
-                console.error('Fetch Failed:', error);
-                return null;
+    async function apiRequest(url, method = 'POST', body = null) {
+        try {
+            const options = { method: method, headers: {} };
+            if (body) {
+                options.headers['Content-Type'] = 'application/json';
+                options.body = JSON.stringify(body);
             }
+            const response = await fetch(url, options);
+            if (!response.ok) throw new Error(`Status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Fetch Failed:', error);
+            return null;
         }
+    }
 
-        // --- ตรวจสอบ Auto Login เมื่อเปิดหน้าเว็บ ---
-        window.onload = async function () {
-            const token = localStorage.getItem('esp32_token');
-
-            // ถ้ามี Token ให้ลองข้ามไปหน้าหลักเลย (หรือเช็คกับ Server ก่อนก็ได้)
-            if (token) {
-                console.log("Found token, redirecting...");
-                window.location.href = "/controlPanel/"; // เปิดหน้าควบคุม
-            }
-        };
-
-        // --- ฟังก์ชันกดปุ่ม Login ---
-        async function handleSignUP() {
-            const userIn = document.querySelector('#input-username-signup').value;
-            const passIn = document.querySelector('#input-password-signup').value;
-            const alertMsg = document.querySelector('.alertMsg');
-
-            // 1. เปลี่ยนปุ่มเป็น Loading
-            btn_signup.innerText = "Checking...";
-            btn_signup.disabled = true;
-            alertMsg.innerText = "";
-
-            // 2. ส่งไปเช็คที่ ESP32
-            // สมมติ API คือ /api/login ส่ง {u: username, p: password}
-            const result = await apiRequest(gateway+'/api/signup', 'POST', { u: userIn, p: passIn });
-            // console.log(result)
-
-            // 3. ตรวจสอบผลลัพธ์
-            if (result.status) {
-                // ✅ Login สำเร็จ
-                alertMsg.style.color = "#4caf50"; // สีเขียว
-                alertMsg.innerText = "Login Success!";
-
-                // console.log(result.okte)
-
-                // บันทึก Token (ถ้ามี) หรือแค่จำว่าผ่านแล้ว
-                // localStorage.setItem('esp32_token', result.okte);
-
-                // รอ 1 วินาทีแล้วเปลี่ยนหน้า
-                setTimeout(() => {
-                    window.location.href = "/"; // ไปหน้าควบคุม
-                }, 1000);
-
-            } else {
-                // ❌ Login พลาด
-                alertMsg.style.color = "#ff4d4d"; // สีแดง
-                alertMsg.innerText = "Invalid Username or Password";
-                btn_signup.innerText = "LOGIN";
-                btn_signup.disabled = false;
-            }
+    window.onload = function () {
+        if (localStorage.getItem('esp32_token')) {
+            window.location.href = "/controlPanel/controlPanel.html"; 
         }
+    };
 
-        // --- ฟังก์ชันกดปุ่ม Login ---
-        async function handleSigngIN() {
-            const userIn = document.querySelector('#username-input').value;
-            const passIn = document.querySelector('#password-input').value;
-            const errorMsg = document.querySelector('.errorMsg');
+    async function handleSigngIN() {
+        const userIn = document.querySelector('#username-input').value;
+        const passIn = document.querySelector('#password-input').value;
+        const errorMsg = document.querySelector('.errorMsg');
+        const btn = document.querySelector('#loginBtn');
 
-            // 1. เปลี่ยนปุ่มเป็น Loading
-            btn.innerText = "Checking...";
-            btn.disabled = true;
-            errorMsg.innerText = "";
+        btn.innerText = "Checking..."; btn.disabled = true; errorMsg.innerText = "";
 
-            // 2. ส่งไปเช็คที่ ESP32
-            // สมมติ API คือ /api/login ส่ง {u: username, p: password}
-            const result = await apiRequest(gateway+'/api/signin', 'POST', { u: userIn, p: passIn, token:localStorage.getItem("esp32_token") || ""});
-            // console.log(result)
+        const result = await apiRequest(gateway + '/api/signin', 'POST', { u: userIn, p: passIn, token: localStorage.getItem("esp32_token") || ""});
 
-            // 3. ตรวจสอบผลลัพธ์
-            if (result.status) {
-                // ✅ Login สำเร็จ
-                errorMsg.innerText = "Login Success!";
-                errorMsg.style.color = "green"; // สีเขียว
-
-                // บันทึก Token (ถ้ามี) หรือแค่จำว่าผ่านแล้ว
-                localStorage.setItem('esp32_token', result.okte);
-                // console.log(result.status);
-                // console.log(typeof(result.status));
-
-                // รอ 1 วินาทีแล้วเปลี่ยนหน้า
-                setTimeout(() => {
-                    window.location.href = "/controlPanel/"; // ไปหน้าควบคุม
-                }, 1000);
-
-            } else {
-                // ❌ Login พลาด
-                errorMsg.innerText = "Invalid Username or Password";
-                errorMsg.style.color = "red"; // สีแดง
-                btn.innerText = "LOGIN";
-                btn.disabled = false;
-            }
+        if (result && result.status) {
+            errorMsg.innerText = "Login Success!";
+            errorMsg.style.color = "var(--success)";
+            localStorage.setItem('esp32_token', result.okte);
+            setTimeout(() => { window.location.href = "/controlPanel/controlPanel.html"; }, 1000);
+        } else {
+            errorMsg.innerText = "Invalid Username or Password";
+            errorMsg.style.color = "var(--error)";
+            btn.innerText = "Sign In"; btn.disabled = false;
         }
-
-        btn_signup.addEventListener("click", handleSignUP)
-        btn.addEventListener("click", handleSigngIN);
-        
-
+    }
 </script>
 
 </body>

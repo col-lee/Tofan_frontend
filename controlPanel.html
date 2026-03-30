@@ -1,152 +1,253 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="test.jpg">
-    <title>Manager</title>
+    <link rel="stylesheet" href="css/all.min.css">
+    <link rel="stylesheet" href="css/solid.css">
+    <title>Manager Dashboard</title>
 </head>
-
 <body>
 
     <header class="container">
         <div class="block-1">
-            <div class="inner-block">
-                <div class="layout-block">
-
-                </div>
+            <div class="inner-block" style="text-align: center; padding-top: 50px;">
+                <h2>ESP32 Dashboard</h2>
+                <p style="color: #6b7280; margin-top: 10px;">Select an app below to start</p>
             </div>
         </div>
+
         <div class="block-2">
             <div class="inner-block app-block">
                 <div class="app-icon icon-click" id="file-app-icon">
-                    <div class="icon"></div>
+                    <div class="icon"><i class="fa-solid fa-folder"></i></div>
                 </div>
                 <div class="app-icon icon-click" id="display-app-icon">
-                    <div class="icon"></div>
+                    <div class="icon"><i class="fa-solid fa-tv"></i></div>
                 </div>
                 <div class="app-icon icon-click" id="music-app-icon">
-                    <div class="icon"></div>
+                    <div class="icon"><i class="fa-solid fa-music"></i></div>
                 </div>
                 <div class="app-icon icon-click" id="setting-app-icon">
-                    <div class="icon"></div>
+                    <div class="icon"><i class="fa-solid fa-gear"></i></div>
                 </div>
             </div>
         </div>
     </header>
 
-    <section class="file-manager">
+    <section class="file-manager panel-section">
         <div class="content">
-            <div class="intput-filename">
-                    <form class="form-create">
-                        <div class="input-filename-group">
-                            <div class="input-group">
-                                <input type="text" name="foldername" placeholder="Name">
+            <div class="btn-close-window"><div class="burger-bar"></div></div>
+            
+            <div class="panel-header" style="flex-direction: column; align-items: flex-start;">
+                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 15px;">
+                    <h3>File Manager</h3>
+                    <div class="header-actions">
+                    <div style="position: relative; display: inline-block;">
+                        <button class="btn-primary-sm" onclick="toggleDropdown('new-item-dropdown')">
+                            <i class="fa-solid fa-plus"></i> New <i class="fa-solid fa-caret-down" style="margin-left: 2px;"></i>
+                        </button>
+                        
+                        <div id="new-item-dropdown" class="dropdown-content">
+                            <div class="dropdown-item" onclick="openModal('modal-create-folder'); toggleDropdown('new-item-dropdown')">
+                                <i class="fa-solid fa-folder-plus" style="color: #f59e0b; width: 20px;"></i> Folder
                             </div>
-                            <div class="button-create-file-group">
-                                <button class="button-cancel">Cancel</button>
-                                <button class="button-create" type="submit">Create</button>
+                            <div class="dropdown-item" onclick="openModal('modal-create-file'); toggleDropdown('new-item-dropdown')">
+                                <i class="fa-solid fa-file-circle-plus" style="color: var(--primary); width: 20px;"></i> File
                             </div>
                         </div>
+                    </div>
+
+                    <a href="/pageUploadFile" class="btn-secondary-sm"><i class="fa-solid fa-upload"></i> Upload</a>
+                </div>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 10px; width: 100%; background: #f1f5f9; padding: 10px; border-radius: 8px;">
+                    <button class="btn-secondary-sm" onclick="goBack()" style="padding: 5px 10px;"><i class="fa-solid fa-arrow-left"></i></button>
+                    <div id="current-path-display" style="font-family: monospace; font-size: 0.9rem; color: #3b82f6;">/</div>
+                </div>
+            </div>
+
+            <div class="display-data" id="file-list-container">
+                <div style="text-align: center; color: gray; padding: 20px;">Loading files...</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="display panel-section">
+        <div class="content">
+            <div class="btn-close-window"><div class="burger-bar"></div></div>
+            <h3 style="margin-bottom: 20px;">Display Control</h3>
+            
+            <div class="grid-controls-3x2">
+                <button class="btn-grid" onclick="sendClearDisplay()">
+                    <i class="fa-solid fa-eraser fa-2x text-danger"></i><span>Clear</span>
+                </button>
+                <button class="btn-grid" onclick="openImagePickerModal()">
+                    <i class="fa-solid fa-image fa-2x text-info"></i><span>Show Image</span>
+                </button>
+                <button class="btn-grid" onclick="openModal('modal-display-settings')">
+                    <i class="fa-solid fa-sliders fa-2x text-muted"></i><span>Settings</span>
+                </button>
+                <button class="btn-grid empty-btn"></button>
+                <button class="btn-grid empty-btn"></button>
+                <button class="btn-grid empty-btn"></button>
+            </div>
+        </div>
+    </section>
+
+    <section class="music panel-section">
+        <div class="content">
+            <div class="btn-close-window"><div class="burger-bar"></div></div>
+            
+            <div class="music-player-container">
+                <div class="vinyl-record"><i class="fa-solid fa-music fa-3x text-muted"></i></div>
+                <h3 class="song-title" id="current-song-title">Select a song to play...</h3>
+                
+                <div class="progress-container">
+                    <span id="time-current">0:00</span>
+                    <input type="range" id="music-progress" value="0" max="100" class="progress-bar-slider">
+                    <span id="time-total">--:--</span>
+                </div>
+
+                <div class="music-controls">
+                    <button class="btn-music" id="btn-music-prev"><i class="fa-solid fa-backward-step"></i></button>
+                    <button class="btn-music play-btn" id="btn-music-play"><i class="fa-solid fa-play"></i></button>
+                    <button class="btn-music" id="btn-music-next"><i class="fa-solid fa-forward-step"></i></button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="setting panel-section">
+        <div class="content">
+            <div class="btn-close-window"><div class="burger-bar"></div></div>
+            
+            <div class="settings-wrapper" style="width: 100%; max-width: 400px; margin: 0 auto; overflow-y: auto; padding-bottom: 20px;">
+                <h3 style="margin-bottom: 20px; text-align: center;">System Settings</h3>
+                
+                <div class="control-section" style="background: #f8fafc; padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid var(--border-color);">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <div class="icon" style="background: #e0e7ff; color: var(--primary); height: 45px; width: 45px;"><i class="fa-solid fa-microchip"></i></div>
+                        <div>
+                            <h4 style="margin: 0; font-size: 1rem;">Firmware</h4>
+                            <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted);">Update ESP32 system</p>
+                        </div>
+                    </div>
+                    <a href="/update" class="btn-primary" style="text-align:center; display:block; text-decoration: none; box-shadow: none; background: #eef2ff; color: var(--primary);">
+                        <i class="fa-solid fa-rotate"></i> Update Firmware
+                    </a>
+                </div>
+                
+                <hr style="border: 0; height: 1px; background: var(--border-color); margin: 25px 0;">
+                
+                <div class="control-section">
+                    <h3 style="margin-bottom: 5px;">Change User</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">เปลี่ยนชื่อผู้ใช้และรหัสผ่านสำหรับเข้าสู่ระบบ</p>
+                    
+                    <div id="change-user-msg" style="font-size: 0.85rem; min-height: 20px; margin-bottom: 15px; font-weight: 500; text-align: center;"></div>
+
+                    <form id="changeUserForm" onsubmit="event.preventDefault(); handleChangeUser();">
+                        <div style="margin-bottom: 15px;">
+                            <input type="text" id="new-username" class="modal-input" placeholder="New Username" style="margin: 0;" required>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <input type="password" id="new-password" class="modal-input" placeholder="New Password" style="margin: 0;" required>
+                        </div>
+                        <button type="submit" class="btn-primary" id="btn-change-user" style="width: 100%;"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
                     </form>
-            </div>
-            <div class="manager">
-                <div><a href="/pageUploadFile">UploadFile⬆️</a></div>
-                <div class="group-drop">
-                    <nav class="head-drop">CreateFoler</nav>
-                </div>
-            </div>
-            <div class="btn-close-window" id="close-file">
-                <div class="burger-bar">
-                    <img src="arrow-down-solid-full.svg" alt="">
-                </div>
-            </div>
-            <div class="display-data">
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-                <div>Hello</div>
-            </div>
-        </div>
-    </section>
-
-    <section class="display">
-        <div class="content">
-            <div class="btn-close-window" id="close-display">
-                <div class="burger-bar">
-                    <img src="arrow-down-solid-full.svg" alt="">
-                </div>
-            </div>
-            <button class="btn-event" id="btn-clear-display">clear</button>
-            <button class="btn-event" id="btn-showImage">showImage</button>
-            <button class="btn-event" id="btn-play-music">play</button>
-            <button class="btn-event" id="btn-stop-music">stop</button>
-        </div>
-        <!-- <div class="sound-box">
-            <span>sound</span><input type="range" min="0" max="100" class="sound-level">
-        </div> -->
-    </section>
-
-    <section class="music">
-        <div class="content">
-            <div class="btn-close-window" id="close-music">
-                <div class="burger-bar">
-                    <img src="arrow-down-solid-full.svg" alt="">
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="setting">
-        <div class="content">
-            <div class="btn-close-window" id="close-setting">
-                <div class="burger-bar">
-                    <img src="arrow-down-solid-full.svg" alt="">
-                </div>
-            </div>
-            <a href="/update">update</a>
+    <div class="modal-overlay" id="modal-overlay"></div>
+
+    <div class="modal-box" id="modal-file-options">
+        <h3 id="selected-file-name" style="margin-bottom: 15px; text-align: center;">filename.txt</h3>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button class="btn-action-modal btn-info" onclick="readFile()">📖 Read File</button>
+            <button class="btn-action-modal btn-warning" onclick="openModal('modal-edit-file')">✏️ Rename / Edit</button>
+            <button class="btn-action-modal btn-danger" onclick="openModal('modal-delete-file')">🗑️ Delete</button>
+            <button class="btn-action-modal btn-secondary" onclick="closeModals()">Cancel</button>
         </div>
-    </section>
+    </div>
 
-    <!-- <a href="/pageUploadFile">uploadFile</a>
-    <button class="btn">click</button> -->
+    <div class="modal-box" id="modal-create-file">
+        <h3>Create New File</h3>
+        <input type="text" id="input-new-filename" class="modal-input" placeholder="Enter filename (e.g. text.txt)">
+        <div class="modal-btn-group">
+            <button class="btn-secondary" onclick="closeModals()">Cancel</button>
+            <button class="btn-primary" onclick="createFile()">Create</button>
+        </div>
+    </div>
 
-    <script src="script.js">
+    <div class="modal-box" id="modal-create-folder">
+        <h3>Create New Folder</h3>
+        <input type="text" id="input-new-foldername" class="modal-input" placeholder="Enter folder name">
+        <div class="modal-btn-group">
+            <button class="btn-secondary" onclick="closeModals()">Cancel</button>
+            <button class="btn-primary" style="background: #f59e0b;" onclick="createFolder()">Create</button>
+        </div>
+    </div>
 
-    </script>
+    <div class="modal-box" id="modal-edit-file">
+        <h3>Rename File</h3>
+        <input type="text" id="input-edit-filename" class="modal-input" placeholder="New filename">
+        <div class="modal-btn-group">
+            <button class="btn-secondary" onclick="closeModals()">Cancel</button>
+            <button class="btn-warning" onclick="editFile()">Save</button>
+        </div>
+    </div>
 
+    <div class="modal-box" id="modal-delete-file">
+        <h3 class="text-danger">Confirm Delete</h3>
+        <p style="margin: 15px 0; text-align: center;">Are you sure you want to delete <strong id="delete-target-name"></strong>?</p>
+        <div class="modal-btn-group">
+            <button class="btn-secondary" onclick="closeModals()">Cancel</button>
+            <button class="btn-danger" onclick="deleteFile()">Delete</button>
+        </div>
+    </div>
+
+    <div class="modal-box" id="modal-image-picker" style="width: 90%; max-width: 400px; padding: 20px;">
+        <h3 style="margin-bottom: 15px; text-align: center;">Select Image</h3>
+        
+        <div style="display: flex; align-items: center; gap: 8px; width: 100%; background: #f1f5f9; padding: 8px; border-radius: 8px; margin-bottom: 10px;">
+            <button class="btn-secondary-sm" onclick="goBackPickerDisplay()" style="padding: 4px 10px;"><i class="fa-solid fa-arrow-left"></i></button>
+            <div id="picker-path-display" style="font-family: monospace; font-size: 0.85rem; color: #3b82f6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">/main</div>
+        </div>
+
+        <div id="picker-file-list-container" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; padding: 5px; margin-bottom: 15px; background: white;">
+            <div style="text-align: center; color: gray; padding: 20px;">Loading...</div>
+        </div>
+
+        <div id="image-picker-preview-container" style="width: 100%; height: 140px; border: 2px dashed #cbd5e1; border-radius: 12px; display: flex; justify-content: center; align-items: center; color: #94a3b8; overflow: hidden; margin-bottom: 15px; background: white;">
+            <i class="fa-solid fa-image" style="font-size: 2.5rem;"></i>
+            <img id="image-picker-preview" src="" alt="Preview" style="max-width: 100%; max-height: 100%; display: none; object-fit: contain;">
+        </div>
+
+        <div class="modal-btn-group">
+            <button class="btn-secondary" onclick="closeModals()">Cancel</button>
+            <button class="btn-primary" id="btn-confirm-show-image" style="background: #3b82f6;" onclick="confirmShowImage()" disabled>
+                <i class="fa-solid fa-display"></i> Show
+            </button>
+        </div>
+    </div>
+
+    <div class="modal-box hide-scrollbar" id="modal-display-settings" style="max-height: 80vh; overflow-y: auto;">
+        <h3 style="margin-bottom: 15px; position: sticky; top:0; background:#fff; padding-bottom:10px; z-index: 5;">
+            Display Settings
+        </h3>
+        
+        <div class="toggle-list" id="display-settings-list">
+            </div>
+        
+        <div class="modal-btn-group" style="margin-top: 20px;">
+            <button class="btn-primary" style="width: 100%;" onclick="closeModals()">Done</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
-
 </html>

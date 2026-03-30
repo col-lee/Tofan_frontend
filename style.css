@@ -1,362 +1,258 @@
 :root {
-    --primary-color: #F9F9F9;
-    --bg-color: #F4F4F4;
-    --shadow-box: 8px 4px 16px -6px rgba(0, 0, 0, 0.2);
-    --shadow-box-2: 0 0 16px 0 rgba(0, 0, 0, 0.2);
-    --icon-color: rgb(149, 149, 149);
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --bg-color: #f3f4f6;
+    --card-bg: #ffffff;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+    --text-dark: #1f2937;
+    --text-muted: #6b7280;
+    --border-color: #e5e7eb;
 }
 
-* {
-    padding: 0;
-    margin: 0;
-    box-sizing: border-box;
-}
+* { padding: 0; margin: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
 
-.container {
-    width: 100svw;
-    height: 100svh;
-    background: var(--bg-color);
-}
+body { background: var(--bg-color); color: var(--text-dark); overflow: hidden; touch-action: manipulation; }
 
+/* Responsive Container */
+.container { width: 100vw; height: 100vh; position: relative; }
+
+/* Main Dashboard Block */
 .block-1 {
-    width: 100%;
-    height: 80%;
-    box-shadow: 4px 4px 12px -6px rgba(0, 0, 0, 0.2);
-    border-radius: 1rem;
+    width: 90%; height: 70vh; margin: 20px auto;
+    background: var(--card-bg); border-radius: 24px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05); overflow: hidden;
 }
 
-/* .block-1, */
+.inner-block { width: 100%; height: 100%; padding: 20px; }
+
+/* Mobile Dock Style */
 .block-2 {
-    position: fixed;
-    top: 86%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80%;
-    max-width: 380px;
-    height: 80px;
-    background: #F9F9F9;
-    border-radius: 50rem;
-    box-shadow: 8px 4px 16px -6px rgba(0, 0, 0, 0.2);
-    /* overflow: hidden; */
-    z-index: 2;
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    width: 90%; max-width: 500px; height: 75px;
+    background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
+    border-radius: 40px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); z-index: 10;
 }
 
-.inner-block {
-    width: 100%;
-    height: 100%;
-    border-radius: inherit;
-    box-shadow: inset 4px 4px 12px -6px rgba(0, 0, 0, 0.2);
-}
-
-.layout-block {
-    
-}
-
-.app-block {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    /* gap: 2%; */
-}
-
-.app-icon {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
+.app-block { display: flex; align-items: center; justify-content: space-evenly; height: 100%; padding: 0 10px; }
+.app-icon { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .icon {
-    height: 60px;
-    aspect-ratio: 1/1;
-    /* background: rgb(143, 143, 143); */
-    background: url("./file_souce/bitmap.png");
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: cover;
-    box-shadow: 0 0 0 0 white;
-    border-radius: 50%;
-    transform: scale(1);
-    transition: transform 0.3s, box-shadow 0.3s;
+    height: 55px; width: 55px; background: #f3f4f6; color: var(--text-dark);
+    border-radius: 18px; display: flex; justify-content: center; align-items: center;
+    font-size: 24px; transition: 0.2s ease-out;
+}
+.app-icon:active .icon, .app-icon:hover .icon { transform: translateY(-5px) scale(1.05); background: var(--primary); color: white; box-shadow: 0 8px 15px rgba(79,70,229,0.3); }
+
+/* Sliding Panels */
+.panel-section {
+    position: fixed; left: 0; top: 100%; width: 100vw; height: 88vh;
+    background: transparent; transition: top 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    z-index: 20; display: flex; justify-content: center;
+}
+.panel-section .content {
+    background: var(--card-bg); width: 100%; max-width: 800px; height: 100%;
+    border-radius: 30px 30px 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
+    padding: 30px 20px; position: relative; display: flex; flex-direction: column;
 }
 
-/* App Animation */
-
-.app-icon:hover > .icon {
-    transform: scale(1.1);
-    box-shadow: 0 0 3px 2px rgb(220, 220, 220);
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-
-/* App Animation */
-
-
-.file-manager, .display, .music, .setting {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
-    position: fixed;
-    left: 0;
-    top: 100%;
-    background: var(--bg-color);
-    /* overflow: hidden; */
-    width: 100svw;
-    height: 82svh;
-    transition: top 0.3s;
-    transition-timing-function: ease-out;
-    z-index: 1;
-    background: transparent;
-    z-index: 1;
-}
-
+/* Close indicator */
 .btn-close-window {
-    position: absolute;
-    top: 101%;
-    left: 50%;
-    transform: translateX(-50%);
+    position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+    background: var(--card-bg); border-radius: 20px; width: 50px; height: 30px;
+    display: flex; justify-content: center; align-items: center; cursor: pointer;
 }
+.burger-bar { width: 30px; height: 5px; background: #cbd5e1; border-radius: 5px; }
 
-.burger-bar {
-    width: 30px;
-    display: grid;
-    place-items: center;
-    aspect-ratio: 1/1;
-    background: none;
-    user-select: none;
+/* File Manager UI */
+.panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;}
+.header-actions { display: flex; gap: 10px; }
+.btn-primary-sm, .btn-secondary-sm {
+    padding: 8px 12px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; text-decoration: none; color: white; display: inline-flex; align-items: center; gap: 5px;
 }
+.btn-primary-sm { background: var(--primary); }
+.btn-secondary-sm { background: var(--text-muted); }
 
-.burger-bar > img{
-    opacity: 0.5;
+.display-data { flex-grow: 1; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 12px; padding: 10px; background: #f8fafc;}
+.file-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 15px; border-bottom: 1px solid #e2e8f0; background: white; border-radius: 8px;
+    margin-bottom: 8px; cursor: pointer; transition: 0.2s;
 }
+.file-item:active { background: #eef2ff; transform: scale(0.98); }
+.file-info { display: flex; align-items: center; gap: 10px; font-weight: 500; font-size: 0.95rem; }
+.text-blue { color: #3b82f6; } .text-green { color: #10b981; }
 
-/* .bar-1, .bar-2, .bar-3 {
+/* Display 3x2 Grid */
+.grid-controls-3x2 {
+    display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr);
+    gap: 15px; height: 60%;
+}
+.btn-grid {
+    background: #f8fafc; border: 1px solid var(--border-color); border-radius: 16px;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    gap: 10px; color: var(--text-dark); font-weight: 600; cursor: pointer; transition: 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+.btn-grid:active { background: var(--primary); color: white; transform: scale(0.95); }
+.empty-btn { background: #f1f5f9; border: 1px dashed #cbd5e1; pointer-events: none; }
+
+/* Music Player */
+.music-player-container { text-align: center; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: center;}
+.vinyl-record {
+    width: 150px; height: 150px; background: #e2e8f0; border-radius: 50%;
+    display: flex; justify-content: center; align-items: center; margin-bottom: 20px;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+}
+.song-title { font-size: 1.2rem; margin-bottom: 20px; color: var(--text-dark); }
+.progress-container { width: 100%; max-width: 400px; display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
+.progress-container span { font-size: 0.85rem; color: var(--text-muted); width: 40px; }
+.progress-bar-slider { flex-grow: 1; accent-color: var(--primary); }
+
+.music-controls { display: flex; gap: 20px; align-items: center; }
+.btn-music {
+    width: 50px; height: 50px; border-radius: 50%; border: none; background: #f1f5f9;
+    color: var(--text-dark); font-size: 1.2rem; cursor: pointer; transition: 0.2s;
+}
+.btn-music:active { background: #e2e8f0; transform: scale(0.9); }
+.play-btn { width: 65px; height: 65px; background: var(--primary); color: white; font-size: 1.5rem; box-shadow: 0 8px 15px rgba(79,70,229,0.3); }
+.play-btn:active { background: var(--primary-hover); }
+
+/* --- LOCAL MODAL SYSTEM --- */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.4); backdrop-filter: blur(3px);
+    z-index: 100; display: none; opacity: 0; transition: 0.3s;
+}
+.modal-box {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+    width: 90%; max-width: 350px; background: white; border-radius: 20px;
+    padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    z-index: 101; display: none; opacity: 0; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.modal-box.active { display: block; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.modal-overlay.active { display: block; opacity: 1; }
+
+.modal-input {
+    width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px;
+    margin: 15px 0; font-size: 1rem; outline: none;
+}
+.modal-input:focus { border-color: var(--primary); }
+
+.modal-btn-group { display: flex; gap: 10px; }
+.modal-btn-group button { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.2s; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-secondary { background: #e5e7eb; color: var(--text-dark); }
+.btn-danger { background: var(--danger); color: white; }
+.btn-warning { background: var(--warning); color: white; }
+.btn-info { background: var(--info); color: white; }
+.text-danger { color: var(--danger); }
+
+.btn-action-modal { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-bottom: 5px; }
+
+/* ปรับแต่งปุ่ม Primary ให้ดูโมเดิร์นและพรีเมียมขึ้น */
+.btn-primary {
     width: 100%;
-    height: 7px;
-    margin: 0.2rem 0;
-    border-radius: 0.1rem;
-}
-
-.bar-1 {
-    background: var(--icon-color);
-    transform: rotate(45deg) translate(8px , 8px);
-}
-
-.bar-2 {
-    background: rgba(red, green, blue, 0.0); 
-}
-
-.bar-3 {
-    background: var(--icon-color);
-    transform: rotate(-45deg) translate(6px , -6.5px);
-} */
-
-.file-manager .content {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-items: start;
-    align-items: start;
-    width: 100%;
-    height: 100%;
-    background: var(--bg-color);
-    box-shadow: var(--shadow-box-2);
-    border-radius: 1rem;
-    padding: 1rem 3rem;
-    /* overflow-y: scroll; */
-}
-
-.display-data {
-    width: 100%;
-    height: 100%;
-    border-top: 1px solid gray;
-    border-bottom: 1px solid gray;
-    /* border-radius: 1rem; */
-    overflow-y: scroll;
-    padding: 0 1rem;
-}
-
-.display-data > div {
-    padding: 0.5rem;
-}
-
-.display-data > div:hover {
-    background: rgb(217, 217, 217);
-}
-
-/* 1. กำหนดความกว้างของ Scrollbar */
-.display-data::-webkit-scrollbar {
-  width: 12px;                /* ความกว้างสำหรับแนวตั้ง */
-  height: 12px;               /* ความสูงสำหรับแนวนอน */
-}
-
-/* 2. ปรับแต่งพื้นหลัง (Track) */
-.display-data::-webkit-scrollbar-track {
-  background: #ffffff;        /* สีพื้นหลัง */
-  border-radius: 10px;        /* ความโค้งมน */
-}
-
-/* 3. ปำรบแต่งส่วนที่เลื่อนได้ (Thumb) */
-.display-data::-webkit-scrollbar-thumb {
-  background: #ababab;           /* สีของแถบเลื่อน */
-  border-radius: 10px;        /* ความโค้งมน */
-  border: 2px solid #f1f1f1;  /* สร้างช่องว่างรอบ thumb */
-}
-
-/* 4. ปรับแต่งเมื่อนำเมาส์ไปวาง (Hover) */
-.display-data::-webkit-scrollbar-thumb:hover {
-  background: #dbdbdb;           /* สีเมื่อ hover */
-}
-
-.content {
-    position: relative;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    grid-auto-rows: minmax(80px, auto);
-    align-content: end;
-    /* justify-content: center; */
-    /* grid-auto-flow: row dense; */
-    /* direction: rtl; */
-    justify-items: center;
-    align-items: center;
-    gap: 1rem;
-    width: 100%;
-    height: 100%;
-    background: var(--bg-color);
-    box-shadow: var(--shadow-box-2);
-    border-radius: 1rem;
-    padding: 1rem 1rem;
-    /* overflow: hidden; */
-}
-
-.btn-event {
-    width: 80px;
-    height: 80px;
-}
-
-.manager {
-    width: 100%;
-    /* height: 50px; */
-    /* background: rgb(204, 0, 0); */
-    border-radius: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.manager a {
-    color: black;
-    text-decoration: none;
-    font-family: Arial, Helvetica, sans-serif;
-    user-select: none;
-}
-
-.head-drop {
-    cursor: default;
-    padding: 0.2rem 0.4rem;
-    background: var(--bg-color);
-    user-select: none;
-}
-
-/* CREATE FILE SECTION */
-.intput-filename {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: none;
-    place-items: center;
-    z-index: 3;
-    /* background: rgba(0, 0, 0, 0.3); */
-}
-
-.input-filename-group {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
-    background: var(--icon-color);
-    border-radius: 0.5rem;
+    padding: 14px; /* เพิ่มความอ้วนของปุ่มให้บาลานซ์กับ Input */
+    background-color: var(--primary);
     color: white;
+    border: none !important; /* บังคับลบขอบสีดำออก */
+    border-radius: 12px; /* โค้งมนเท่ากับช่อง Input */
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25); /* เพิ่มเงาให้ปุ่มลอยขึ้นมา */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px; /* จัดระยะห่างระหว่างไอคอนกับตัวหนังสือ */
 }
 
-.button-create-file-group {
+/* เอฟเฟกต์ตอนเอาเมาส์ชี้ (หรือตอนแตะค้าง) */
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px); /* ยกปุ่มขึ้นนิดนึง */
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4); /* เงาเข้มขึ้น */
+}
+
+/* เอฟเฟกต์ตอนกดปุ่มลงไป */
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
+}
+
+.btn-primary:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Toggles (iOS Style Native CSS) */
+.toggle-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+.toggle-switch { position: relative; width: 50px; height: 26px; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 26px; }
+.slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--primary); }
+input:checked + .slider:before { transform: translateX(24px); }
+
+/* Landscape Media Query */
+@media (orientation: landscape) and (max-height: 600px) {
+    .block-1 { height: 60vh; }
+    .panel-section .content { flex-direction: row; flex-wrap: wrap; overflow-y: auto;}
+    .grid-controls-3x2 { width: 100%; height: auto; }
+}
+
+/* คลาสสำหรับซ่อน Scrollbar แต่ยังเลื่อนได้ปกติ */
+.hide-scrollbar {
+    -ms-overflow-style: none;  /* สำหรับ Internet Explorer, Edge */
+    scrollbar-width: none;     /* สำหรับ Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;             /* สำหรับ Chrome, Safari, และ Opera (รวมถึงเบราว์เซอร์บนมือถือส่วนใหญ่) */
+}
+
+/* ================= Dropdown Menu Styles ================= */
+.dropdown-content {
+    display: none; /* ซ่อนไว้เป็นค่าเริ่มต้น */
+    position: absolute;
+    right: 0; /* ให้กล่องขยายไปทางซ้ายขอบชิดขวา */
+    top: 110%; /* ให้อยู่ใต้ปุ่มพอดี */
+    background-color: white;
+    min-width: 130px;
+    box-shadow: 0px 10px 25px rgba(0,0,0,0.15);
+    border-radius: 12px;
+    z-index: 100;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+/* คลาสที่จะถูก JavaScript สั่งเพิ่มเพื่อโชว์เมนู */
+.dropdown-content.show {
+    display: block;
+    animation: fadeInDown 0.2s ease-out; /* เพิ่มลูกเล่นเด้งลงมาเบาๆ */
+}
+
+.dropdown-item {
+    color: var(--text-dark);
+    padding: 12px 16px;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 1rem;
-    
+    gap: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: background-color 0.2s;
 }
 
-.input-group > input {
-    padding: 0.2rem;
-    border-radius: 0.2rem;
-    border: none;
+.dropdown-item:hover, .dropdown-item:active {
+    background-color: #f1f5f9;
 }
 
-.input-group > input:focus {
-    outline: none;
-}
-
-.button-create-file-group > button{
-    border: none;
-    padding: 0.3rem;
-    border-radius: 0.2rem;
-}
-
-
-
-
-/* .sound-box  p , .sound-box  input{
-    display: block;
-} */
-
-
-/* File-Manager Style */
-
-/* File-Manager Style */
-
-/* Display Style */
-
-/* Display Style */
-
-/* Music Style */
-
-/* Music Style */
-
-/* Setting Style */
-
-/* Setting Style */
-
-@media screen and (max-width: 768px) {
-
-    .file-manager .content {
-        padding: 2rem;
-    }
-
-    .display-data {
-        padding: 0;
-    }
-
-    .block-2 {
-        height: 65px;
-    }
-
-    .icon {
-        height: 50px;
-    }
-}
-
-@media screen and (min-width: 768px){
-    
-    .container {
-        padding: 1rem 30%;
-    }
-
-    .file-manager, .display, .music, .setting {
-        padding: 1rem 30%;
-    }
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
