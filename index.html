@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Control Panel</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/all.min.css">
+    <link rel="stylesheet" href="css/solid.css">
     <style>
         :root {
             --primary: #4f46e5;
@@ -104,6 +104,19 @@
     const IP = window.location.hostname;
     const gateway = `http://${IP}`;
 
+    window.onload = function () {
+        const res = apiRequest(`${gateway}/api/checkToken`, "POST", {token:localStorage.getItem('esp32_token') || ""})
+        
+        res.then(e=>{
+            if (e.status) {
+                window.location.href = "/controlPanel/controlPanel.html";
+            } else {
+                console.log(e.msg);
+            }
+        })
+        
+    };
+
     // Password Toggle
     document.querySelector('.toggle-password').addEventListener('click', function() {
         const input = this.previousElementSibling;
@@ -128,12 +141,6 @@
             return null;
         }
     }
-
-    window.onload = function () {
-        if (localStorage.getItem('esp32_token')) {
-            window.location.href = "/controlPanel/controlPanel.html"; 
-        }
-    };
 
     async function handleSigngIN() {
         const userIn = document.querySelector('#username-input').value;

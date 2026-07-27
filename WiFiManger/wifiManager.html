@@ -167,13 +167,6 @@
             <p>Select a network to connect</p>
         </div>
 
-        <div class="wifi-list-container" id="wifiListContainer">
-            <button class="refresh-btn" onclick="scanNetworks()">↻ Scan Networks</button>
-            <div id="loader">Scanning...</div>
-            <div id="wifiList">
-                </div>
-        </div>
-
         <div class="form-section">
             <form id="wifiForm" onsubmit="event.preventDefault(); connectWiFi();">
                 <div class="input-group">
@@ -200,83 +193,7 @@
     <script>
         // --- 1. จำลองข้อมูลสำหรับการทดสอบ (ถ้าใช้จริง ESP32 ต้องส่ง JSON มา) ---
         // ให้แก้ IP นี้เป็น IP ของ ESP32 เมื่อใช้งานจริง
-        const API_BASE = "http://192.168.4.1"; 
-        
-        // ข้อมูลจำลอง (ถ้า ESP32 ยังไม่ตอบกลับ จะใช้ชุดนี้โชว์แทน)
-        const mockNetworks = [
-            { ssid: "Home_WiFi_2.4G", rssi: -50, secure: true },
-            { ssid: "Office_Guest", rssi: -75, secure: true },
-            { ssid: "Free_Public", rssi: -90, secure: false },
-            { ssid: "IoT_Device_Net", rssi: -60, secure: true }
-        ];
-
-        window.onload = function() {
-            scanNetworks();
-        };
-
-        // --- 2. ฟังก์ชันหลัก ---
-
-        async function scanNetworks() {
-            const list = document.getElementById("wifiList");
-            const loader = document.getElementById("loader");
-            
-            list.innerHTML = ""; // เคลียร์ของเก่า
-            loader.style.display = "block"; // โชว์ Loading
-
-            // ลองยิงไปที่ ESP32 (ถ้าไม่ได้ จะใช้ Mock Data)
-            try {
-                // สมมติ API ของ ESP32 คือ /scan
-                const response = await fetch(`${API_BASE}/scan`);
-                if(!response.ok) throw new Error("API Error");
-                
-                const networks = await response.json();
-                // console.log(networks);
-                renderList(networks);
-            } catch (e) {
-                console.warn("Scan failed (using mock data):", e);
-                // จำลองดีเลย์นิดนึงให้ดูเหมือนสแกน
-                // setTimeout(() => {
-                //     renderList(mockNetworks);
-                // }, 1000);
-            } finally {
-                loader.style.display = "none";
-            }
-        }
-
-        function renderList(networks) {
-            const list = document.getElementById("wifiList");
-            list.innerHTML = "";
-
-            if(networks.length === 0) {
-                list.innerHTML = "<div style='text-align:center; padding:20px; color:#999;'>No networks found</div>";
-                return;
-            }
-
-            networks.forEach(net => {
-                const item = document.createElement("div");
-                item.className = "wifi-item";
-                
-                // คำนวณความแรงสัญญาณ
-                let signalIcon = "weak";
-                if(net.rssi > -60) signalIcon = "Strong";
-                else if(net.rssi > -70) signalIcon = "Medium";
-
-                const lockIcon = net.secure ? "🔒" : "";
-
-                item.innerHTML = `
-                    <span class="wifi-name">${lockIcon} ${net.ssid}</span>
-                    <span class="wifi-signal">${signalIcon} (${net.rssi} dBm)</span>
-                `;
-
-                // **Feature เด็ด: คลิกแล้วเติม SSID อัตโนมัติ**
-                item.onclick = () => {
-                    document.getElementById("ssid").value = net.ssid;
-                    document.getElementById("password").focus();
-                };
-
-                list.appendChild(item);
-            });
-        }
+        const API_BASE = "http://192.168.4.1";
 
         async function connectWiFi() {
             const ssid = document.getElementById("ssid").value;
